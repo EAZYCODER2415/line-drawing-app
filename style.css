@@ -1,0 +1,12 @@
+body {
+    background-color: skyblue;
+}
+
+section.board {
+    border: 5px solid black;
+}
+
+.board canvas {
+    height: 100%;
+    width: 100%;
+}
