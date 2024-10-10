@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link rel="stylesheet" href="/workspaces/line-drawing-app/__init__/style.css">
+        <link rel="stylesheet" href="style.css">
         <title>Line Drawing App</title>
+        <script src="drawing_script.js" defer></script>
     </head>
     <body>
         <section class="board">
-            <canvas>aaaa</canvas>
+            <canvas id="drawingCanvas" height="600" width="800"></canvas>
         </section>
         <button onClick="clearCanvas()">Clear</button>
-        <button onClick="saveCoordinates()">Save</button>
+        <button id="saveBtn">Save</button>
     </body>
 </html>

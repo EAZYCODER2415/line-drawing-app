@@ -4,9 +4,10 @@ body {
 
 section.board {
     border: 5px solid black;
+    height: 200%;
+    width: 100%;
 }
 
 .board canvas {
-    height: 100%;
-    width: 100%;
+    background-color: white;
 }
