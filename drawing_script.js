@@ -1,6 +1,7 @@
 const canvas = document.getElementById('drawingCanvas');
 const ctx = canvas.getContext('2d');
 const saveBtn = document.getElementById('saveBtn'); 
+const clearBtn = document.getElementById('clearBtn'); 
 
 let lines = []; // Store line coordinates here
 let isDrawing = false;
@@ -70,3 +71,8 @@ saveBtn.addEventListener('click', () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url); });
+
+clearBtn.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height); 
+    let lines = [];
+    drawAllLines();
