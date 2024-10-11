@@ -74,5 +74,5 @@ saveBtn.addEventListener('click', () => {
 
 clearBtn.addEventListener('click', () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height); 
-    let lines = [];
+    lines = [];
     drawAllLines(); });
