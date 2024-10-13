@@ -18,10 +18,28 @@ function toMM(value) {
 }
 
 // Mouse event handlers 
-canvas.addEventListener('mousedown', (e) => { 
+function doubleClickCancel() {
+    if (!isDrawing) return;
+    isDrawing = false;
+    const endX = e.offsetX;
+    const endY = e.offsetY; 
+    // Save line coordinates in 0.1 mm units 
+    const line = { 
+        start: { x: toMM(startX), y: toMM(startY) }, 
+        end: { x: toMM(endX),y: toMM(endY) }}; 
+    lines.push(line); 
+    // Draw the final line 
+    drawAllLines();
+}
+
+canvas.addEventListener('click', (e) => { 
     isDrawing = true; 
     startX = e.offsetX; 
-    startY = e.offsetY; 
+    startY = e.offsetY;  
+    doubleClickCancel()
+    isDrawing = true; 
+    startX = endX; 
+    startY = endY;
 }); 
 
 canvas.addEventListener('mousemove', (e) => {
@@ -35,21 +53,7 @@ canvas.addEventListener('mousemove', (e) => {
     ctx.moveTo(startX, startY);
     ctx.lineTo(endX, endY);
     ctx.stroke(); 
-}); 
-
-canvas.addEventListener('mouseup', (e) => { 
-    if (!isDrawing) return;
-    isDrawing = false;
-    const endX = e.offsetX;
-    const endY = e.offsetY; 
-    // Save line coordinates in 0.1 mm units 
-    const line = { 
-        start: { x: toMM(startX), y: toMM(startY) }, 
-        end: { x: toMM(endX),y: toMM(endY) }}; 
-    lines.push(line); 
-    // Draw the final line 
-    drawAllLines(); 
-}); 
+});
 
 function drawAllLines() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
