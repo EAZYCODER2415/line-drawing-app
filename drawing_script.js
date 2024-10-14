@@ -113,7 +113,7 @@ canvas.addEventListener('oncontextmenu', (e) => {
         // Draw the final line 
         drawAllLines();
     }
-});
+}, false);
 
 canvas.addEventListener('mousemove', (e) => {
     if (!isDrawing) return;
