@@ -7,7 +7,17 @@
     </head>
     <body>
         <section class="board">
-            <canvas id="drawingCanvas" height="600" width="800"></canvas>
+            <canvas id="drawingCanvas" height="600" width="600"></canvas>
+            <div class="guide">
+                <h1>How to Use the Line Drawing Program</h1>
+                <ol>
+                    <li>Left-click to create a green line, indicating that the robot places the pen down.</li>
+                    <li>Double click to create a red line, indicating that the robot pen lifts the pen up.</li>
+                    <li>Right click to end the drawing process, you can still create new lines.</li>
+                    <li>Feel free to save the drawing and a json file will be sent to you.</li>
+                </ol>
+                <img src="https://ai.thestempedia.com/wp-content/uploads/2023/05/evive_Robotic_Arm_1200x900.jpg" alt="drawing_robot">
+            </div>
         </section>
         <button id="clearBtn">Clear</button>
         <button id="saveBtn">Save</button>

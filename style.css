@@ -6,8 +6,32 @@ section.board {
     border: 5px solid black;
     height: 200%;
     width: 100%;
+    display: flex;
+    flex-direction: row;
 }
 
 .board canvas {
     background-color: white;
+    flex: 1;
+}
+
+.guide * {
+    font-family: Arial;
+    text-align: center;
+    display: block;
+}
+
+.guide h1 {
+    font-size: 30px;
+}
+
+.guide ol li {
+    margin-bottom: 10px;
+    justify-self: center;
+}
+
+.guide img {
+    width: 75%;
+    display: flex;
+    align-self: center;
 }

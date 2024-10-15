@@ -7,7 +7,8 @@ let lines = []; // Store line coordinates here
 let isDrawing = false;
 let color = false;
 let startX = 0;
-let startY = 0; 
+let startY = 0;
+let startDrawing = false;
 
 // Conversion factor from pixels to mm
 const PIXEL_TO_MM = 25.4 / 96; // ~0.2646 mm per pixel (25.4 mm / 96 dpi)
@@ -18,10 +19,34 @@ function toMM(value) {
     return Math.round((value * PIXEL_TO_MM) / MM_UNIT_SCALE); 
 }
 
-canvas.addEventListener('click', (e) => { 
+canvas.addEventListener('click', (e) => {
     if (e.detail === 1) {
         // do something if the element was clicked once.
         if (isDrawing == false) {
+            if (!startDrawing) {
+                startDrawing = true;
+            } else if (startDrawing) {
+                const endX = e.offsetX;
+                const endY = e.offsetY; 
+                // Save line coordinates in 0.1 mm units 
+                const line = { 
+                    start: { x: toMM(startX), y: toMM(startY)}, 
+                    end: { x: toMM(endX),y: toMM(endY)},
+                    color: color
+                };
+                lines.push(line); 
+                // fix json file by removing certain lines
+                let i = 0;
+                while (i < lines.length) {
+                    if (lines[i]["start"]["x"] == lines[i]["end"]["x"] && lines[i]["start"]["y"] == lines[i]["end"]["y"]) {
+                        lines.pop(i);
+                    } else {
+                        i++;
+                    }
+                }
+                // Draw the final line 
+                drawAllLines();
+            }
             isDrawing = true;
             color = true;
             startX = e.offsetX; 
@@ -37,6 +62,15 @@ canvas.addEventListener('click', (e) => {
                 color: color
             };
             lines.push(line); 
+            // fix json file by removing certain lines
+            let i = 0;
+            while (i < lines.length) {
+                if (lines[i]["start"]["x"] == lines[i]["end"]["x"] && lines[i]["start"]["y"] == lines[i]["end"]["y"]) {
+                    lines.pop(i);
+                } else {
+                    i++;
+                }
+            }
             // Draw the final line 
             drawAllLines();
             isDrawing = true;
@@ -45,58 +79,19 @@ canvas.addEventListener('click', (e) => {
             startY = endY;
         }
     } else if (e.detail === 2) {
-        // do something else if the element was clicked twice
-        if (!isDrawing) return;
-        isDrawing = false;
-        const endX = e.offsetX;
-        const endY = e.offsetY; 
-        // Save line coordinates in 0.1 mm units 
-        const line = { 
-            start: { x: toMM(startX), y: toMM(startY)}, 
-            end: { x: toMM(endX),y: toMM(endY)},
-            color: color
-        };
-        lines.push(line); 
-        // fix json file by removing certain lines
-        if (line.start.x == line.end.x && line.start.y == line.end.y) {
-            lines.pop();
+        if (isDrawing == true) {
+            isDrawing = false;
+            color = false;
+            startX = e.offsetX; 
+            startY = e.offsetY;
         }
-        // Draw the final line 
-        drawAllLines();
+        if (!isDrawing) {return;}
     }
 });
 
-canvas.addEventListener('oncontextmenu', (e) => { 
-    e.preventDefault();
-    if (e.detail === 1) {
-        // do something if the element was clicked once.
-        if (isDrawing == false) {
-            isDrawing = true;
-            color = true;
-            startX = e.offsetX; 
-            startY = e.offsetY;
-        } else {
-            isDrawing = false;
-            const endX = e.offsetX;
-            const endY = e.offsetY; 
-            // Save line coordinates in 0.1 mm units 
-            const line = { 
-                start: { x: toMM(startX), y: toMM(startY)}, 
-                end: { x: toMM(endX),y: toMM(endY)},
-                color: color
-            };
-            lines.push(line); 
-            // Draw the final line 
-            drawAllLines();
-            isDrawing = true;
-            color = true;
-            startX = endX; 
-            startY = endY;
-        }
-    } else if (e.detail === 2) {
-        // do something else if the element was clicked twice
-        if (!isDrawing) return;
-        isDrawing = false;
+canvas.addEventListener('contextmenu', (e) => {
+    if (startDrawing) {
+        e.preventDefault();
         const endX = e.offsetX;
         const endY = e.offsetY; 
         // Save line coordinates in 0.1 mm units 
@@ -107,16 +102,23 @@ canvas.addEventListener('oncontextmenu', (e) => {
         };
         lines.push(line); 
         // fix json file by removing certain lines
-        if (line.start.x == line.end.x && line.start.y == line.end.y) {
-            lines.pop();
+        let i = 0;
+        while (i < lines.length) {
+            if (lines[i]["start"]["x"] == lines[i]["end"]["x"] && lines[i]["start"]["y"] == lines[i]["end"]["y"]) {
+                lines.pop(i);
+            } else {
+                i++;
+            }
         }
+        isDrawing = false;
         // Draw the final line 
         drawAllLines();
+        startDrawing = false;
     }
-}, false);
+});
 
 canvas.addEventListener('mousemove', (e) => {
-    if (!isDrawing) return;
+    if (!startDrawing) {return;}
     const endX = e.offsetX;
     const endY = e.offsetY; 
     // Clear and redraw line 
@@ -149,6 +151,35 @@ function drawAllLines() {
 
 // Save to JSON file 
 saveBtn.addEventListener('click', () => {
+    // add red lines in between disconnected lines
+    let i = 0;
+    while (i < lines.length-1) {
+        if (lines[i]["end"]["x"] != lines[i+1]["start"]["x"] && lines[i]["end"]["y"] != lines[i+1]["start"]["y"]) { // end xy of line 1 is not equal to start xy of line 2
+            let newLine = {
+                start: { x: lines[i]["end"]["x"], y: lines[i]["end"]["y"]}, 
+                end: { x: lines[i+1]["start"]["x"],y: lines[i+1]["start"]["y"]},
+                color: false
+            }
+            lines.splice(i+1, 0, newLine);
+            i += 2;
+        } else {
+            i++;
+        }
+    }
+    // first line from 0,0
+    let firstLine = { 
+        start: { x: toMM(0), y: toMM(0)}, 
+        end: { x: lines[0]["start"]["x"],y: lines[0]["start"]["y"]},
+        color: false
+    };
+    lines.unshift(firstLine); 
+    // final line to 100,0
+    let finalLine = { 
+        start: { x: lines[lines.length-1]["end"]["x"],y: lines[lines.length-1]["end"]["y"]},
+        end: { x: 100, y: 0},
+        color: false
+    };
+    lines.push(finalLine);
     const jsonContent = JSON.stringify(lines, null, 2);
     const blob = new Blob([jsonContent], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -157,9 +188,11 @@ saveBtn.addEventListener('click', () => {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url); });
+    URL.revokeObjectURL(url);
+});
 
 clearBtn.addEventListener('click', () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height); 
     lines = [];
-    drawAllLines(); });
+    drawAllLines();
+});
