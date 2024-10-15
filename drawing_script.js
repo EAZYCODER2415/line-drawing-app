@@ -10,15 +10,6 @@ let startX = 0;
 let startY = 0;
 let startDrawing = false;
 
-// Conversion factor from pixels to mm
-const PIXEL_TO_MM = 25.4 / 96; // ~0.2646 mm per pixel (25.4 mm / 96 dpi)
-const MM_UNIT_SCALE = 0.1; // We want 0.1 mm precision
-
-// Convert pixels to 0.1 mm units 
-function toMM(value) {
-    return Math.round((value * PIXEL_TO_MM) / MM_UNIT_SCALE); 
-}
-
 canvas.addEventListener('click', (e) => {
     if (e.detail === 1) {
         // do something if the element was clicked once.
@@ -30,8 +21,8 @@ canvas.addEventListener('click', (e) => {
                 const endY = e.offsetY; 
                 // Save line coordinates in 0.1 mm units 
                 const line = { 
-                    start: { x: toMM(startX), y: toMM(startY)}, 
-                    end: { x: toMM(endX),y: toMM(endY)},
+                    start: { x: startX, y: startY}, 
+                    end: { x: endX,y: endY},
                     color: color
                 };
                 lines.push(line); 
@@ -57,8 +48,8 @@ canvas.addEventListener('click', (e) => {
             const endY = e.offsetY; 
             // Save line coordinates in 0.1 mm units 
             const line = { 
-                start: { x: toMM(startX), y: toMM(startY)}, 
-                end: { x: toMM(endX),y: toMM(endY)},
+                start: { x: startX, y: startY}, 
+                end: { x: endX,y: endY},
                 color: color
             };
             lines.push(line); 
@@ -96,8 +87,8 @@ canvas.addEventListener('contextmenu', (e) => {
         const endY = e.offsetY; 
         // Save line coordinates in 0.1 mm units 
         const line = { 
-            start: { x: toMM(startX), y: toMM(startY)}, 
-            end: { x: toMM(endX),y: toMM(endY)},
+            start: { x: startX, y: startY}, 
+            end: { x: endX,y: endY},
             color: color
         };
         lines.push(line); 
@@ -119,14 +110,12 @@ canvas.addEventListener('contextmenu', (e) => {
 
 canvas.addEventListener('mousemove', (e) => {
     if (!startDrawing) {return;}
-    const endX = e.offsetX;
-    const endY = e.offsetY; 
     // Clear and redraw line 
     ctx.clearRect(0, 0, canvas.width, canvas.height); 
     drawAllLines();
     ctx.beginPath();
     ctx.moveTo(startX, startY);
-    ctx.lineTo(endX, endY);
+    ctx.lineTo(e.offsetX, e.offsetY);
     if (color == true) {
         ctx.strokeStyle = "#008000";
     } else {
@@ -139,8 +128,8 @@ function drawAllLines() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     lines.forEach(line => {
         ctx.beginPath();
-        ctx.moveTo(line.start.x / PIXEL_TO_MM * MM_UNIT_SCALE, line.start.y / PIXEL_TO_MM * MM_UNIT_SCALE);
-        ctx.lineTo(line.end.x / PIXEL_TO_MM * MM_UNIT_SCALE, line.end.y / PIXEL_TO_MM * MM_UNIT_SCALE);
+        ctx.moveTo(line.start.x, line.start.y);
+        ctx.lineTo(line.end.x, line.end.y);
         if (line.color == true) {
             ctx.strokeStyle = "#008000";
         } else {
@@ -168,7 +157,7 @@ saveBtn.addEventListener('click', () => {
     }
     // first line from 0,0
     let firstLine = { 
-        start: { x: toMM(0), y: toMM(0)}, 
+        start: { x: 0, y: 0}, 
         end: { x: lines[0]["start"]["x"],y: lines[0]["start"]["y"]},
         color: false
     };
@@ -176,10 +165,26 @@ saveBtn.addEventListener('click', () => {
     // final line to 100,0
     let finalLine = { 
         start: { x: lines[lines.length-1]["end"]["x"],y: lines[lines.length-1]["end"]["y"]},
-        end: { x: 100, y: 0},
+        end: { x: 600, y: 0},
         color: false
     };
     lines.push(finalLine);
+    // convert all coordinates to be relative to a 100x100 px grid
+    for (let i = 0; i < lines.length; i++) {
+        lines[i]["start"]["x"] /= 6;
+        lines[i]["start"]["y"] /= 6;
+        lines[i]["end"]["x"] /= 6;
+        lines[i]["end"]["y"] /= 6;
+    }
+    // convert all indexes in list to a specific format
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i]["color"] == true) {
+            newString = "(t, ";
+        } else {
+            newString = "(f, ";
+        }
+        lines[i] = newString + lines[i]["end"]["x"] + ", " + lines[i]["end"]["y"] + ")";
+    }
     const jsonContent = JSON.stringify(lines, null, 2);
     const blob = new Blob([jsonContent], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
